@@ -1,58 +1,55 @@
-import java.io.File;
-import java.util.Scanner;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.json.JSONObject;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class XMLReader {
     public static void main(String[] args) {
         try {
-            // Load XML file
-            File file = new File("data.xml");
+            // Create SAXParserFactory instance
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
 
-            // Create DocumentBuilderFactory and DocumentBuilder
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            // Create a handler for SAX events
+            DefaultHandler handler = new DefaultHandler() {
+                boolean fieldFound = false;
 
-            // Parse XML file
-            Document doc = builder.parse(file);
-
-            // Normalize XML structure
-            doc.getDocumentElement().normalize();
-
-            // Get all record nodes
-            NodeList nodeList = doc.getElementsByTagName("record");
-
-            // Get user-selected fields
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Enter comma-separated field names (e.g., name, postalZip, country):");
-            String[] selectedFields = scanner.nextLine().trim().split(",");
-
-            // Iterate through each record
-            for (int i = 0; i < nodeList.getLength(); i++) {
-                Node node = nodeList.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    // Create JSON object for each record
-                    JSONObject jsonObject = new JSONObject();
-                    for (String field : selectedFields) {
-                        jsonObject.put(field.trim(), getNodeValue(node, field.trim()));
+                // Called when the parser encounters the start of an element
+                public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+                    if (qName.equalsIgnoreCase(field)) {
+                        fieldFound = true;
                     }
-                    // Print JSON object
-                    System.out.println(jsonObject.toString());
                 }
-            }
-        } catch (Exception e) {
+
+                // Called when the parser encounters the end of an element
+                public void endElement(String uri, String localName, String qName) throws SAXException {
+                    // Reset the fieldFound flag
+                    fieldFound = false;
+                }
+
+                // Called when the parser encounters character data inside an element
+                public void characters(char[] ch, int start, int length) throws SAXException {
+                    if (fieldFound) {
+                        String fieldValue = new String(ch, start, length);
+                        System.out.println(fieldValue);
+                    }
+                }
+            };
+
+            // Parse the XML input stream using the handler
+            InputStream inputStream = XMLReader.class.getResourceAsStream("input.xml");
+            saxParser.parse(inputStream, handler);
+
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
     }
-
-    // Helper method to get node value
-    private static String getNodeValue(Node node, String tagName) {
-        Node childNode = ((org.w3c.dom.Element) node).getElementsByTagName(tagName).item(0);
-        return childNode.getTextContent();
-    }
 }
+
 
