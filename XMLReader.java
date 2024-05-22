@@ -5,6 +5,7 @@ import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.json.JSONObject;
 
 public class XMLReader {
     public static void main(String[] args) {
@@ -34,11 +35,13 @@ public class XMLReader {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    // Print selected fields
+                    // Create JSON object for each record
+                    JSONObject jsonObject = new JSONObject();
                     for (String field : selectedFields) {
-                        System.out.println(field + ": " + getNodeValue(node, field.trim()));
+                        jsonObject.put(field.trim(), getNodeValue(node, field.trim()));
                     }
-                    System.out.println("--------------------");
+                    // Print JSON object
+                    System.out.println(jsonObject.toString());
                 }
             }
         } catch (Exception e) {
