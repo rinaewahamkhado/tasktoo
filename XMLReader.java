@@ -1,4 +1,5 @@
 import java.io.File;
+import java.util.Scanner;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
@@ -24,17 +25,19 @@ public class XMLReader {
             // Get all record nodes
             NodeList nodeList = doc.getElementsByTagName("record");
 
+            // Get user-selected fields
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter comma-separated field names (e.g., name, postalZip, country):");
+            String[] selectedFields = scanner.nextLine().trim().split(",");
+
             // Iterate through each record
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    // Print field values
-                    System.out.println("Name: " + getNodeValue(node, "name"));
-                    System.out.println("Postal/Zip: " + getNodeValue(node, "postalZip"));
-                    System.out.println("Region: " + getNodeValue(node, "region"));
-                    System.out.println("Country: " + getNodeValue(node, "country"));
-                    System.out.println("Address: " + getNodeValue(node, "address"));
-                    System.out.println("List: " + getNodeValue(node, "list"));
+                    // Print selected fields
+                    for (String field : selectedFields) {
+                        System.out.println(field + ": " + getNodeValue(node, field.trim()));
+                    }
                     System.out.println("--------------------");
                 }
             }
@@ -49,3 +52,4 @@ public class XMLReader {
         return childNode.getTextContent();
     }
 }
+
